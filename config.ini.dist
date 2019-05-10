@@ -1,0 +1,11 @@
+[DATABASE]
+HOST=localhost
+PORT=3306
+USER=username
+PASS=password
+NAME=database
+[FOURSQUARE]
+CLIENT_ID=clientid
+CLIENT_SECRET=clientsecret
+CLIENT_CALLBACK=https://example.com/redirect_uri
+
