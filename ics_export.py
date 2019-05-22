@@ -6,8 +6,9 @@ import argparse
 #import json
 
 import os
-from icalendar import Calendar, Event
+from icalendar import Calendar, Event, vDatetime
 from datetime import datetime
+import pytz
 
 db = Database()
 
@@ -37,21 +38,25 @@ ORDER BY c.createdAt DESC
     cal.add('method', 'PUBLISH') # TODO?
     cal.add('x-wr-calname', '4sq-checkout')
     cur = db.execute(sql, {'user_id': user_id});
-    dtnow = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+    #dtnow = datetime.now(timezone.utc) # this returns TZ aware datetime. utcnow() is TZ naive
+    dtnow = datetime.utcnow().replace(tzinfo=pytz.utc)
     for row in cur:
         event = Event()
-        dt = datetime.utcfromtimestamp(row[1]).strftime('%Y%m%dT%H%M%SZ')
+        dt = datetime.utcfromtimestamp(row[1]).replace(tzinfo=pytz.utc)
         summary = (row[8] + ' ' if row[8] else '') + '@ ' + row[5]
-        event['uid'] = row[0] + '@foursquare.com'
-        event['dtstart'] = dt
-        event['dtend'] = dt
-        event['dtstamp'] = dtnow
-        event['url'] = 'https://foursquare.com/user/' + user_id + '/checkin/' + row[0]
+        event.add('uid', row[0] + '@foursquare.com')
+        #event.add('dtstart', dt )
+        #event.add('dtend', dt )
+        #event.add('dtstamp', dt )
+        event['dtstart'] = vDatetime(dt).to_ical()
+        event['dtend'] = vDatetime(dt).to_ical()
+        event['dtstamp'] = vDatetime(dtnow).to_ical()
+        event.add('url', 'https://foursquare.com/user/' + user_id + '/checkin/' + row[0])
         if row[3]:
-            event['geo'] = ';'.join([row[3], row[4]])
-        event['summary'] = summary
-        event['description'] = "\n".join(filter(None, [ summary, row[9], row[10] ]))
-        event['location'] = ", ".join(filter(None, [ row[5], row[6], row[7] ]))
+            event.add('geo', (float(row[3]), float(row[4])))
+        event.add('summary', summary)
+        event.add('description', "\n".join(filter(None, [ summary, row[9], row[10] ])) )
+        event.add('location', ", ".join(filter(None, [ row[5], row[6], row[7] ])) )
         cal.add_component(event)
     f = open(path, 'wb')
     f.write(cal.to_ical())
