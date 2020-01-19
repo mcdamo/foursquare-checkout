@@ -188,7 +188,7 @@ def eprint(*args, **kwargs):
 
 parser = argparse.ArgumentParser(description="Download Foursquare Checkins")
 parser.add_argument('cmds', metavar="CMD", type=str, nargs='+',
-                    help="""auth, auth_redirect CODE, ...""")
+                    help="""auth, auth_redirect, checkins, all_checkins""")
 
 if len(sys.argv)==1:
     parser.print_help(sys.stderr)
