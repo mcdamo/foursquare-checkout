@@ -8,11 +8,20 @@ import argparse
 import os
 from icalendar import Calendar, Event, vDatetime
 from datetime import datetime
+import time
 import pytz
 
 db = Database()
 
-def export_ics(user_id, path):
+def export_ics(user_id, path, date_from=None, date_to=None):
+    date_from_sql = ""
+    date_to_sql = ""
+    if (date_from is not None):
+        time_from = time.mktime(datetime.strptime(date_from, "%Y-%m-%d").timetuple())
+        date_from_sql = "AND c.createdAt >= {}".format(time_from)
+    if (date_to is not None):
+        time_to = time.mktime(datetime.strptime(date_to + " 23:59:59", "%Y-%m-%d %H:%M:%S").timetuple())
+        date_to_sql = "AND c.createdAt <= {}".format(time_to)
     sql = """
 SELECT 
 c.id,
@@ -29,8 +38,10 @@ c.post
 FROM checkins c
 INNER JOIN venues v ON v.id = c.venue_id
 WHERE c.user_id = %(user_id)s
+{date_from}
+{date_to}
 ORDER BY c.createdAt DESC
-;"""
+;""".format(date_from=date_from_sql, date_to=date_to_sql)
     cal = Calendar()
     cal.add('version', '2.0')
     cal.add('prodid', '-//www.foursquare.com/foursquare ICS//EN')
@@ -68,6 +79,8 @@ def eprint(*args, **kwargs):
 parser = argparse.ArgumentParser(description="Export Foursquare checkins")
 parser.add_argument('cmds', metavar="CMD", type=str, nargs='+',
                     help="""USER FILE.ics,...""")
+parser.add_argument('--date-from', dest='date_from', action='store', type=str, help="Checkins after this date Y-m-d")
+parser.add_argument('--date-to', dest='date_to', action='store', type=str, help="Checkins before this date Y-m-d")
 
 if len(sys.argv)==1:
     parser.print_help(sys.stderr)
@@ -79,4 +92,4 @@ if len(args.cmds) < 2:
     print("input required")
     sys.exit(1)
 else:
-    export_ics(args.cmds[0], args.cmds[1]);
+    export_ics(user_id=args.cmds[0], path=args.cmds[1], date_from=args.date_from, date_to=args.date_to);
