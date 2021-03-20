@@ -1,0 +1,12 @@
+#!/bin/bash
+
+me="$(dirname $(readlink -nf $0))"
+user_id=
+ics=calendar.ics
+date_from=2021-01-01
+remote=user@host:/public/
+
+cd $me && \
+./foursquare-api.py checkins $user_id && \
+./ics_export.py --date-from $date_from $user_id $ics && \
+scp -C $ics $remote
