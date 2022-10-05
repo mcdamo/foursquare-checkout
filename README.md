@@ -24,13 +24,15 @@ You will need to sign up for a free [Foursquare Developer](https://developer.fou
 
 ## Install
 
-- Install the Foursquare API library
+- Install virtual-env
 
-  `pip3 install foursquare`
+  `python3 -m venv venv`
 
-- Optionally install the iCalendar library to enable ICS export:
+  `source venv/bin/activate`
 
-  `pip3 install icalendar`
+- Install the dependencies: Foursquare API library `foursquare` and optionally the iCalendar library to enable ICS export `icalendar`
+
+  `pip3 install -r requirements.txt`
 
 - Create your database with the provided *schema.sql*.
 

@@ -1,3 +1,4 @@
 config.ini
 *.ics
 __pycache__
+/venv
